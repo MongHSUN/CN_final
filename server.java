@@ -9,16 +9,29 @@ public class server{
 			this.client = client;		
 		}
 		public void run(){
-			System.out.println("Run!!");
 			System.out.println(client);
-			//while(true){
-        		//IO
-        		//InputStreamReader isr = new InputStreamReader(client.getInputStream());
-				//BufferedReader br = new BufferedReader(isr);
-				//String str = br.readLine();
-				//System.out.println(str);
-        	//}
-			
+        	//IO
+        	try{
+        		OutputStream os = client.getOutputStream();
+				PrintWriter pw = new PrintWriter(os, true);
+				pw.println("Your are connected!");
+        	} catch (IOException e){
+				//error do nothing
+			}
+			//server do read-and-write
+        	while(true){
+        		try{	
+					OutputStream os = client.getOutputStream();
+					PrintWriter pw = new PrintWriter(os, true);
+					InputStreamReader isr = new InputStreamReader(client.getInputStream());
+					BufferedReader br = new BufferedReader(isr);
+					String str = br.readLine();
+					System.out.println(str);
+					pw.println("server receive msg : "+str);
+				}catch (IOException e){
+					//error do nothing
+				}
+			}
 		}
     }
 
@@ -28,23 +41,15 @@ public class server{
 	public void go() throws IOException{
 		//initial
 		int port = 12345;
-		InetAddress addr = InetAddress.getByName("10.129.162.32");
+		InetAddress addr = InetAddress.getByName("114.45.61.130");
 		ServerSocket ser = new ServerSocket(port, 50, addr);
 		//accept
 		while(true){
-			System.out.println("AAA");
+			System.out.println("Waiting new client...");
 			Socket client = ser.accept();
-			OutputStream os = client.getOutputStream();
-			PrintWriter pw = new PrintWriter(os, true);
-			pw.println("Your are connected!");
-			/*InputStreamReader isr = new InputStreamReader(client.getInputStream());
-			BufferedReader br = new BufferedReader(isr);
-			String str = br.readLine();
-			System.out.println(str);*/
 			//create thread
 			Thread t = new Thread(new MyRunnable(client));
 			t.start();
-			System.out.println("BBB");
 		}
 	}
 }
