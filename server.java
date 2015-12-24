@@ -1,7 +1,16 @@
 import java.io.*;
 import java.net.*;
 public class server{
-	
+	//structure
+	public class Member{
+		String id;
+		String password;
+		Socket socket;
+		boolean live;	
+	} 
+	public static Member[] member = new Member[100];
+	public static int user_count=0; 
+	//thread
 	public class MyRunnable implements Runnable{
 		private Socket client;
 		public MyRunnable(Socket client){
@@ -9,12 +18,16 @@ public class server{
 			this.client = client;		
 		}
 		public void run(){
+			int my_count=user_count;			//my structure id
+			member[user_count] = new Member();
+        	user_count++;
 			System.out.println(client);
         	//IO
         	try{
         		OutputStream os = client.getOutputStream();
 				PrintWriter pw = new PrintWriter(os, true);
 				pw.println("Your are connected!");
+				System.out.println("user_count : "+user_count);
         	} catch (IOException e){
 				//error do nothing
 			}
@@ -34,14 +47,14 @@ public class server{
 			}
 		}
     }
-
+    //main function
     public static void main(String args[]) throws IOException{
-		new server().go();		
+		new server().go();
 	}
 	public void go() throws IOException{
 		//initial
 		int port = 12345;
-		InetAddress addr = InetAddress.getByName("114.45.61.130");
+		InetAddress addr = InetAddress.getByName("114.45.55.123");
 		ServerSocket ser = new ServerSocket(port, 50, addr);
 		//accept
 		while(true){

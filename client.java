@@ -4,7 +4,7 @@ import java.net.*;
 public class client{
 	public static void main(String args[]) throws IOException{
 		//initial
-		String ip = "114.45.61.130";
+		String ip = "114.45.55.123";
 		int port = 12345;
 		Socket socket = new Socket(ip, port);
 		BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
