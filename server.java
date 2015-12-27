@@ -21,11 +21,11 @@ public class server{
 			this.pw = pw;
 			this.br = br;		
 		}
-		public void registration(int my_count){
+		public int registration(){
 			boolean succeed=true;
-			int tmp=0,i,flag;
+			int tmp=0,i,flag,my_count=user_count;
 			String mypassword;
-			pw.println("Please enter your account ( new for registration ) :");
+			pw.println("SYSTEM : Please enter your account ( new for registration )");
 			while(succeed){
 				try{
 					String str = br.readLine();
@@ -34,11 +34,11 @@ public class server{
 						while(true){
 							flag = 0;
 							if(tmp==0)
-								pw.println("Please enter your new account :");
+								pw.println("SYSTEM : Please enter your new account");
 							String account = br.readLine();
 							for(i=0;i<user_count;i++){
 								if(account.equals(member[i].id)){
-									pw.println("This account has been used ! Enter another again :");
+									pw.println("SYSTEM : This account has been used ! Enter another again");
 									tmp=1;
 									flag=1;
 									break;
@@ -46,9 +46,11 @@ public class server{
 							}
 							if(flag==1)
 								continue;
-							pw.println("Please enter your password :");
+							pw.println("SYSTEM : Please enter your password");
 							mypassword = br.readLine();
 							succeed = false;
+							my_count = user_count;
+							user_count++;
 							member[my_count].id = account;
 							member[my_count].password = mypassword;
 							member[my_count].socket = client;
@@ -58,52 +60,75 @@ public class server{
 					}
 					//standord login
 					else{
-						pw.println("Please enter your password :");
+						pw.println("SYSTEM : Please enter your password");
 						mypassword = br.readLine();
 						for(i=0;i<user_count;i++)
 							if(str.equals(member[i].id)&&mypassword.equals(member[i].password)){
 								succeed = false;
+								my_count = i;
 								member[my_count].socket = client;
 								member[my_count].live = true;
-								member[my_count].id = member[i].id;
-								member[my_count].password = member[i].password;
 								break;
 							}
 						if(succeed)
-							pw.println("Incorrect account or password ! Enter your account again :");
+							pw.println("SYSTEM : Incorrect account or password ! Enter your account again");
 					}
-				}catch (IOException e){
-					//error do nothing
-				}
+				}catch (IOException e){/*error do nothing*/}
 			}
+			return my_count;
 		}
 		public void run(){
-			pw.println("Your are connected!");
-			int my_count=user_count;			//my structure id
-			member[user_count] = new Member();
-			member[user_count].live = false;
-        	user_count++;
+			pw.println("SYSTEM : Your are connected!");
 			System.out.println(client);
 			System.out.println("user_count : "+user_count);
-			registration(my_count);
-			pw.println("Login succeed !");
+			int my_count = registration();
+			pw.println("SYSTEM : Login succeed !");
 			//server do read-and-write
         	while(true){
         		try{	
 					String str = br.readLine();
-					if (str.equals("logout")) {
-						pw.println("You log out the system !");
+					if (str.equals("LOGOUT")) {
+						pw.println("SYSTEM : You log out the system !");
 						member[my_count].live = false;
 						client.close();
 						break;
 					}
+					else if (str.equals("KNOCK")){
+						int status=0,i;
+						pw.println("SYSTEM : Please enter the account you want to knock");
+						str = br.readLine();
+						for(i=0;i<user_count;i++){
+							if (str.equals(member[i].id)&&member[i].live==false) {
+								status=1;
+								break;
+							}
+							else if(str.equals(member[i].id)&&member[i].live==true){
+								status=2;
+								break;
+							}
+						}
+						if(status==0)
+							pw.println("SYSTEM : This account hasn't been registered !");
+						else if(status==1)
+							pw.println("SYSTEM : The user is offline !");
+						else
+							pw.println("SYSTEM : The user is online !");
+					}
+					else if (str.equals("MESSAGE")){
+						pw.println("SYSTEM : Coming soon ......");
+					}
+					else if (str.equals("FILE")){
+						pw.println("SYSTEM : Coming soon ......");
+					}
+					else if (str.equals("CHAT")){
+						pw.println("SYSTEM : Coming soon ......");
+					}
+					//other
 					else{
 						System.out.println(member[my_count].id+" : "+str);
-						pw.println(member[my_count].id+" : "+str);
+						pw.println("SYSTEM : invalid command !");
 					}
-				}catch (IOException e){
-					//error do nothing
-				}
+				}catch (IOException e){/*error do nothing*/}
 			}
 			System.out.println("A user leave !");
 		}
@@ -114,9 +139,11 @@ public class server{
 	}
 	public void go() throws IOException{
 		//initial
-		int port = 12345;
+		int port = 12345,i;
 		InetAddress addr = InetAddress.getByName("192.168.1.107");
-		ServerSocket ser = new ServerSocket(port, 50, addr);
+		ServerSocket ser = new ServerSocket(port, 100, addr);
+		for(i=0;i<100;i++)
+			member[i] = new Member();
 		//accept
 		while(true){
 			System.out.println("Waiting new client...");
