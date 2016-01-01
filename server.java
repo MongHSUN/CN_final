@@ -16,7 +16,6 @@ public class server{
 		private PrintWriter pw;
 		private BufferedReader br;
 		public MyRunnable(Socket client ,PrintWriter pw, BufferedReader br){
-			System.out.println("Here is the starting point of Thread.");
 			this.client = client;
 			this.pw = pw;
 			this.br = br;		
@@ -130,7 +129,7 @@ public class server{
 					}
 				}catch (IOException e){/*error do nothing*/}
 			}
-			System.out.println("A user leave !");
+			System.out.println(member[my_count].id+" leave !");
 		}
     }
     //main function
