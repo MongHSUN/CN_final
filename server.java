@@ -73,49 +73,90 @@ public class server{
 							pw.println("SYSTEM : Incorrect account or password ! Enter your account again");
 					}
 				}catch (IOException e){/*error do nothing*/}
+				System.out.println(member[my_count].id+" login !");
 			}
 			return my_count;
 		}
+		public void knock(int my_count){
+			int status=0,i;
+			try{
+				pw.println("SYSTEM : Please enter the account you want to knock");
+				String str = br.readLine();
+				for(i=0;i<user_count;i++){
+					if (str.equals(member[i].id)&&member[i].live==false) {
+						status=1;
+						break;
+					}
+					else if(str.equals(member[i].id)&&member[i].live==true){
+						status=2;
+						break;
+					}
+				}
+				if(status==0)
+					pw.println("SYSTEM : This account hasn't been registered !");
+				else if(status==1)
+					pw.println("SYSTEM : The user is offline !");
+				else	
+					pw.println("SYSTEM : The user is online !");
+				System.out.println(member[my_count].id+" knocks "+str+"!");
+			}catch (IOException e){/*error do nothing*/}
+		}
+		public void message(int my_count){
+			int i,flag=0;
+			try{
+				pw.println("SYSTEM : Please enter the user you want to message");
+				String name = br.readLine();
+				for (i=0;i<user_count;i++){
+					if(name.equals(member[i].id)&&member[i].live==true){
+						flag = 1;
+						break;
+					}
+					else if(name.equals(member[i].id)&&member[i].live==false){
+						flag = 2;
+						break;
+					}
+				}
+				if(flag==1){
+					pw.println("SYSTEM : Please enter the message you want to send");
+					String input = br.readLine();
+					OutputStream os_tmp = member[i].socket.getOutputStream();
+					PrintWriter pw_tmp = new PrintWriter(os_tmp, true);
+					pw_tmp.println(member[my_count].id+" : "+input);
+					pw.println(member[my_count].id+" : "+input);
+					System.out.println(member[my_count].id+" to "+member[i].id+" : "+input);
+				}
+				else if(flag==2)
+					pw.println("SYSTEM : The user is offline !");
+				else
+					pw.println("SYSTEM : No such user !");
+			}catch (IOException e){/*error do nothing*/}
+		}
+		public boolean logout(int my_count){
+			try{
+				pw.println("SYSTEM : You log out the system !");
+				member[my_count].live = false;
+				client.close();
+				System.out.println(member[my_count].id+" leave !");
+			}catch (IOException e){/*error do nothing*/}
+			return false;
+		}
 		public void run(){
+			boolean state=true;
 			pw.println("SYSTEM : Your are connected!");
 			System.out.println(client);
 			System.out.println("user_count : "+user_count);
 			int my_count = registration();
 			pw.println("SYSTEM : Login succeed !");
 			//server do read-and-write
-        	while(true){
+        	while(state){
         		try{	
 					String str = br.readLine();
-					if (str.equals("LOGOUT")) {
-						pw.println("SYSTEM : You log out the system !");
-						member[my_count].live = false;
-						client.close();
-						break;
-					}
-					else if (str.equals("KNOCK")){
-						int status=0,i;
-						pw.println("SYSTEM : Please enter the account you want to knock");
-						str = br.readLine();
-						for(i=0;i<user_count;i++){
-							if (str.equals(member[i].id)&&member[i].live==false) {
-								status=1;
-								break;
-							}
-							else if(str.equals(member[i].id)&&member[i].live==true){
-								status=2;
-								break;
-							}
-						}
-						if(status==0)
-							pw.println("SYSTEM : This account hasn't been registered !");
-						else if(status==1)
-							pw.println("SYSTEM : The user is offline !");
-						else
-							pw.println("SYSTEM : The user is online !");
-					}
-					else if (str.equals("MESSAGE")){
-						pw.println("SYSTEM : Coming soon ......");
-					}
+					if (str.equals("LOGOUT")) 
+						state = logout(my_count);
+					else if (str.equals("KNOCK"))
+						knock(my_count);
+					else if (str.equals("MESSAGE"))
+						message(my_count);
 					else if (str.equals("FILE")){
 						pw.println("SYSTEM : Coming soon ......");
 					}
@@ -129,7 +170,6 @@ public class server{
 					}
 				}catch (IOException e){/*error do nothing*/}
 			}
-			System.out.println(member[my_count].id+" leave !");
 		}
     }
     //main function
