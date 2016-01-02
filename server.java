@@ -131,6 +131,9 @@ public class server{
 					pw.println("SYSTEM : No such user !");
 			}catch (IOException e){/*error do nothing*/}
 		}
+		public void file(int my_count){
+			
+		}
 		public boolean logout(int my_count){
 			try{
 				pw.println("SYSTEM : You log out the system !");
