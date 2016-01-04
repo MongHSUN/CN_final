@@ -131,8 +131,11 @@ public class server{
 					pw.println("SYSTEM : No such user !");
 			}catch (IOException e){/*error do nothing*/}
 		}
-		public void file(int my_count){
+		public void upload(int my_count){
 			
+		}
+		public void download(int my_count){
+
 		}
 		public boolean logout(int my_count){
 			try{
@@ -160,9 +163,10 @@ public class server{
 						knock(my_count);
 					else if (str.equals("MESSAGE"))
 						message(my_count);
-					else if (str.equals("FILE")){
-						pw.println("SYSTEM : Coming soon ......");
-					}
+					else if (str.equals("UPLOAD"))
+						upload(my_count);
+					else if (str.equals("DOWNLOAD"))
+						download(my_count);
 					else if (str.equals("CHAT")){
 						pw.println("SYSTEM : Coming soon ......");
 					}

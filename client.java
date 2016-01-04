@@ -44,7 +44,7 @@ public class client{
 		}
 		System.out.println(socket_input);
 		//command flow
-		System.out.println("Now you can enter the following commands : KNOCK MESSAGE FILE CHAT LOGOUT");
+		System.out.println("Now you can enter the following commands : KNOCK MESSAGE UPLOAD DOWNLOAD CHAT LOGOUT");
 		//a thread to listen socket input
 		Thread t = new Thread(new MyRunnable(socket,br));
 		t.start();
