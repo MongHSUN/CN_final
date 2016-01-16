@@ -4,6 +4,7 @@ import java.net.*;
 public class client{
 
 	public static boolean state=true;
+	public static int file_flag=0;
 
 	public class MyRunnable implements Runnable{
 		private Socket socket;
@@ -15,10 +16,79 @@ public class client{
 		public void run(){
 			while(state){
 				try{
-					System.out.println(br.readLine());
+					String system_response = br.readLine();
+					System.out.println(system_response);
+					if(system_response.equals("SYSTEM : File download starts"))
+						file_flag = 1;
+					else if(system_response.equals("STSTEM : Invalid file name ! Download stops"))
+						file_flag = 2;
 				}catch (IOException e){/*error do nothing*/}
 			}
 		}
+	}
+
+	public void file(BufferedReader userInput,Socket socket,Socket file_socket){
+    	try {
+    		String file_name;
+    		File file;
+    		PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
+    		String account = userInput.readLine();
+    		pw.println(account);
+    		file_name = userInput.readLine();	
+    		file = new File(file_name);
+    		if(!file.isFile()){
+    			System.out.println("STSTEM : Invalid file name ! Please enter again");
+    			file_name = userInput.readLine();	
+    			file = new File(file_name);	
+    		}
+    		pw.println(file_name);
+      		FileInputStream fos = new FileInputStream(file);
+      		OutputStream netOut = file_socket.getOutputStream();
+      		OutputStream doc = new BufferedOutputStream(netOut);
+      		byte[] buf = new byte[1024];
+      		int num = fos.read(buf);
+      		while (num != -1) { 
+        		doc.write(buf, 0, num); 
+        		doc.flush(); 
+        		num = fos.read(buf); 
+      		}
+      		doc.close(); 
+      		fos.close();
+    	} catch (Exception ex) {/*error do nothing*/} 
+	}
+
+	public void download(BufferedReader userInput,Socket socket,Socket file_socket){
+		try{
+			PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
+			String file_name = userInput.readLine();
+			pw.println(file_name);
+			while(true){
+				if(file_flag==1){
+					file_flag=0;
+					break;
+				}
+				else if(file_flag==2){
+					file_flag=0;
+					return;
+				}
+			}
+            File file = new File(file_name); 
+           	if (file.exists()) file.delete(); 
+           	file.createNewFile();	
+           	RandomAccessFile raf = new RandomAccessFile(file, "rw"); 
+           	InputStream netIn = file_socket.getInputStream();
+            InputStream in =new BufferedInputStream(netIn);
+           	byte[] buf = new byte[1024];
+           	int num = in.read(buf);
+           	while (num !=  -1) { 
+               	raf.write(buf, 0, num); 
+            	raf.skipBytes(num); 
+              	num = in.read(buf);   		
+         	} 
+           	in.close();
+           	netIn.close();
+           	raf.close();
+		}catch (IOException e){/*error do nothing*/}
 	}
 
 	public static void main(String args[]) throws IOException{
@@ -27,11 +97,12 @@ public class client{
 
 	public void go() throws IOException{
 		//initial
-		String ip = "192.168.1.107",user_input,socket_input;
-		int port = 12345;
-		Socket socket = new Socket(ip, port);
+		String ip = "127.0.0.1",user_input,socket_input;
+		Socket socket = new Socket(ip, 12345);
+		Socket file_socket = new Socket(ip,23456);
 		BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
+		OutputStream os = socket.getOutputStream();
+		PrintWriter pw = new PrintWriter(os, true);
 		BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
 		//login flow
 		System.out.println(br.readLine());
@@ -44,7 +115,7 @@ public class client{
 		}
 		System.out.println(socket_input);
 		//command flow
-		System.out.println("Now you can enter the following commands : KNOCK MESSAGE UPLOAD DOWNLOAD CHAT LOGOUT");
+		System.out.println("Now you can enter the following commands : KNOCK MESSAGE FILE DOWNLOAD CHAT LOGOUT");
 		//a thread to listen socket input
 		Thread t = new Thread(new MyRunnable(socket,br));
 		t.start();
@@ -54,6 +125,10 @@ public class client{
 			pw.println(user_input);
 			if(user_input.equals("LOGOUT"))
 				state = false;
+			else if(user_input.equals("FILE"))
+				file(userInput,socket,file_socket);
+			else if(user_input.equals("DOWNLOAD"))
+				download(userInput,socket,file_socket);
 		}
 	}
 }

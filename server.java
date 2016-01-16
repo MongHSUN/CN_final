@@ -6,6 +6,7 @@ public class server{
 		String id;
 		String password;
 		Socket socket;
+		Socket file_socket;
 		boolean live;	
 	} 
 	public static Member[] member = new Member[100];
@@ -15,8 +16,10 @@ public class server{
 		private Socket client;
 		private PrintWriter pw;
 		private BufferedReader br;
-		public MyRunnable(Socket client ,PrintWriter pw, BufferedReader br){
+		private Socket file_client;
+		public MyRunnable(Socket client ,Socket file_client,PrintWriter pw, BufferedReader br){
 			this.client = client;
+			this.file_client = file_client;
 			this.pw = pw;
 			this.br = br;		
 		}
@@ -53,6 +56,7 @@ public class server{
 							member[my_count].id = account;
 							member[my_count].password = mypassword;
 							member[my_count].socket = client;
+							member[my_count].file_socket = file_client;
 							member[my_count].live = true;
 							break;
 						}
@@ -66,6 +70,7 @@ public class server{
 								succeed = false;
 								my_count = i;
 								member[my_count].socket = client;
+								member[my_count].file_socket = file_client;
 								member[my_count].live = true;
 								break;
 							}
@@ -73,8 +78,8 @@ public class server{
 							pw.println("SYSTEM : Incorrect account or password ! Enter your account again");
 					}
 				}catch (IOException e){/*error do nothing*/}
-				System.out.println(member[my_count].id+" login !");
 			}
+			System.out.println(member[my_count].id+" login !");
 			return my_count;
 		}
 		public void knock(int my_count){
@@ -131,17 +136,77 @@ public class server{
 					pw.println("SYSTEM : No such user !");
 			}catch (IOException e){/*error do nothing*/}
 		}
-		public void upload(int my_count){
-			
+		public void file(int my_count){
+			try {
+				int flag=0,i=0;
+				pw.println("SYSTEM : Please enter the account you want to transfer file");
+				String name = br.readLine();
+				for (i=0;i<user_count;i++)
+					if(name.equals(member[i].id)&&member[i].live==true){
+						flag = 1;
+						break;
+					}
+				pw.println("SYSTEM : Please enter the file you want to transfer");
+				String file_name = br.readLine();
+            	File file = new File(file_name); 
+           		if (file.exists()) file.delete(); 
+           		file.createNewFile();	
+           		RandomAccessFile raf = new RandomAccessFile(file, "rw"); 
+           		InputStream netIn = file_client.getInputStream();
+            	InputStream in =new BufferedInputStream(netIn);
+           		byte[] buf = new byte[1024];
+           		int num = in.read(buf);
+           		while (num !=  -1) { 
+                	raf.write(buf, 0, num); 
+             		raf.skipBytes(num); 
+              		num = in.read(buf);   		
+         		} 
+           		in.close();
+           		raf.close();
+           		pw.println("SYSTEM : File transfer succeed");
+           		if (flag==1){
+           			OutputStream os_tmp = member[i].socket.getOutputStream();
+					PrintWriter pw_tmp = new PrintWriter(os_tmp, true);
+					pw_tmp.println("SYSTEM : "+member[my_count].id+" sends "+file_name+" to you");
+           			System.out.println(member[my_count].id+" sends "+file_name+" to "+member[i].id);
+      			}
+      			else
+      				System.out.println(member[my_count].id+" sends "+file_name+" to server");
+      		} catch(Exception ex) {}/*error do nothing*/
 		}
 		public void download(int my_count){
-
+			try{
+				File file;
+				pw.println("SYSTEM : Please enter the file name you want to download");
+				String file_name = br.readLine();
+				file = new File(file_name);
+    			if(!file.isFile()){
+    				pw.println("STSTEM : Invalid file name ! Download stops");
+    				return;
+    			}
+    			pw.println("SYSTEM : File download starts");
+    			FileInputStream fos = new FileInputStream(file);
+      			OutputStream netOut = file_client.getOutputStream();
+      			OutputStream doc = new BufferedOutputStream(netOut);
+      			byte[] buf = new byte[1024];
+      			int num = fos.read(buf);
+      			while (num != -1) { 
+        			doc.write(buf, 0, num); 
+        			doc.flush(); 
+        			num = fos.read(buf); 
+      			}
+      			doc.close();
+      			fos.close();
+      			pw.println("SYSTEM : File download succeed");
+      			System.out.println(member[my_count].id+" downloads "+file_name);	
+      		} catch(Exception ex) {}/*error do nothing*/
 		}
 		public boolean logout(int my_count){
 			try{
 				pw.println("SYSTEM : You log out the system !");
 				member[my_count].live = false;
 				client.close();
+				file_client.close();
 				System.out.println(member[my_count].id+" leave !");
 			}catch (IOException e){/*error do nothing*/}
 			return false;
@@ -150,12 +215,13 @@ public class server{
 			boolean state=true;
 			pw.println("SYSTEM : Your are connected!");
 			System.out.println(client);
+			System.out.println(file_client);
 			System.out.println("user_count : "+user_count);
 			int my_count = registration();
 			pw.println("SYSTEM : Login succeed !");
 			//server do read-and-write
         	while(state){
-        		try{	
+        		try{
 					String str = br.readLine();
 					if (str.equals("LOGOUT")) 
 						state = logout(my_count);
@@ -163,8 +229,8 @@ public class server{
 						knock(my_count);
 					else if (str.equals("MESSAGE"))
 						message(my_count);
-					else if (str.equals("UPLOAD"))
-						upload(my_count);
+					else if (str.equals("FILE"))
+						file(my_count);
 					else if (str.equals("DOWNLOAD"))
 						download(my_count);
 					else if (str.equals("CHAT")){
@@ -185,21 +251,23 @@ public class server{
 	}
 	public void go() throws IOException{
 		//initial
-		int port = 12345,i;
-		InetAddress addr = InetAddress.getByName("192.168.1.107");
-		ServerSocket ser = new ServerSocket(port, 100, addr);
+		int i;
+		InetAddress addr = InetAddress.getByName("127.0.0.1");
+		ServerSocket ser = new ServerSocket(12345, 100, addr);
+		ServerSocket file_ser = new ServerSocket(23456, 100, addr);
 		for(i=0;i<100;i++)
 			member[i] = new Member();
 		//accept
 		while(true){
 			System.out.println("Waiting new client...");
 			Socket client = ser.accept();
+			Socket file_client = file_ser.accept();
 			OutputStream os = client.getOutputStream();
 			PrintWriter pw = new PrintWriter(os, true);
 			InputStreamReader isr = new InputStreamReader(client.getInputStream());
 			BufferedReader br = new BufferedReader(isr);
 			//create thread
-			Thread t = new Thread(new MyRunnable(client,pw,br));
+			Thread t = new Thread(new MyRunnable(client,file_client,pw,br));
 			t.start();
 		}
 	}
