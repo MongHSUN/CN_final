@@ -6,20 +6,18 @@ public class server{
 		String id;
 		String password;
 		Socket socket;
-		Socket file_socket;
 		boolean live;	
 	} 
 	public static Member[] member = new Member[100];
 	public static int user_count=0; 
+	public static ServerSocket file_ser;
 	//thread
 	public class MyRunnable implements Runnable{
 		private Socket client;
 		private PrintWriter pw;
 		private BufferedReader br;
-		private Socket file_client;
-		public MyRunnable(Socket client ,Socket file_client,PrintWriter pw, BufferedReader br){
+		public MyRunnable(Socket client ,PrintWriter pw, BufferedReader br){
 			this.client = client;
-			this.file_client = file_client;
 			this.pw = pw;
 			this.br = br;		
 		}
@@ -56,7 +54,6 @@ public class server{
 							member[my_count].id = account;
 							member[my_count].password = mypassword;
 							member[my_count].socket = client;
-							member[my_count].file_socket = file_client;
 							member[my_count].live = true;
 							break;
 						}
@@ -70,7 +67,6 @@ public class server{
 								succeed = false;
 								my_count = i;
 								member[my_count].socket = client;
-								member[my_count].file_socket = file_client;
 								member[my_count].live = true;
 								break;
 							}
@@ -138,6 +134,8 @@ public class server{
 		}
 		public void file(int my_count){
 			try {
+				Socket file_client = file_ser.accept();
+				System.out.println(file_client);
 				int flag=0,i=0;
 				pw.println("SYSTEM : Please enter the account you want to transfer file");
 				String name = br.readLine();
@@ -163,6 +161,7 @@ public class server{
          		} 
            		in.close();
            		raf.close();
+           		file_client.close();
            		pw.println("SYSTEM : File transfer succeed");
            		if (flag==1){
            			OutputStream os_tmp = member[i].socket.getOutputStream();
@@ -176,12 +175,15 @@ public class server{
 		}
 		public void download(int my_count){
 			try{
+				Socket file_client = file_ser.accept();
+				System.out.println(file_client);
 				File file;
 				pw.println("SYSTEM : Please enter the file name you want to download");
 				String file_name = br.readLine();
 				file = new File(file_name);
     			if(!file.isFile()){
     				pw.println("STSTEM : Invalid file name ! Download stops");
+    				file_client.close();
     				return;
     			}
     			pw.println("SYSTEM : File download starts");
@@ -197,6 +199,7 @@ public class server{
       			}
       			doc.close();
       			fos.close();
+      			file_client.close();
       			pw.println("SYSTEM : File download succeed");
       			System.out.println(member[my_count].id+" downloads "+file_name);	
       		} catch(Exception ex) {}/*error do nothing*/
@@ -206,7 +209,6 @@ public class server{
 				pw.println("SYSTEM : You log out the system !");
 				member[my_count].live = false;
 				client.close();
-				file_client.close();
 				System.out.println(member[my_count].id+" leave !");
 			}catch (IOException e){/*error do nothing*/}
 			return false;
@@ -215,7 +217,6 @@ public class server{
 			boolean state=true;
 			pw.println("SYSTEM : Your are connected!");
 			System.out.println(client);
-			System.out.println(file_client);
 			System.out.println("user_count : "+user_count);
 			int my_count = registration();
 			pw.println("SYSTEM : Login succeed !");
@@ -254,20 +255,19 @@ public class server{
 		int i;
 		InetAddress addr = InetAddress.getByName("127.0.0.1");
 		ServerSocket ser = new ServerSocket(12345, 100, addr);
-		ServerSocket file_ser = new ServerSocket(23456, 100, addr);
+		file_ser = new ServerSocket(23456, 100, addr);
 		for(i=0;i<100;i++)
 			member[i] = new Member();
 		//accept
 		while(true){
 			System.out.println("Waiting new client...");
 			Socket client = ser.accept();
-			Socket file_client = file_ser.accept();
 			OutputStream os = client.getOutputStream();
 			PrintWriter pw = new PrintWriter(os, true);
 			InputStreamReader isr = new InputStreamReader(client.getInputStream());
 			BufferedReader br = new BufferedReader(isr);
 			//create thread
-			Thread t = new Thread(new MyRunnable(client,file_client,pw,br));
+			Thread t = new Thread(new MyRunnable(client,pw,br));
 			t.start();
 		}
 	}

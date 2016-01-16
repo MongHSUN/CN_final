@@ -5,6 +5,7 @@ public class client{
 
 	public static boolean state=true;
 	public static int file_flag=0;
+	public static String ip = "127.0.0.1";
 
 	public class MyRunnable implements Runnable{
 		private Socket socket;
@@ -27,8 +28,9 @@ public class client{
 		}
 	}
 
-	public void file(BufferedReader userInput,Socket socket,Socket file_socket){
+	public void file(BufferedReader userInput,Socket socket){
     	try {
+    		Socket file_socket = new Socket(ip,23456);
     		String file_name;
     		File file;
     		PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
@@ -54,11 +56,13 @@ public class client{
       		}
       		doc.close(); 
       		fos.close();
+      		file_socket.close();
     	} catch (Exception ex) {/*error do nothing*/} 
 	}
 
-	public void download(BufferedReader userInput,Socket socket,Socket file_socket){
+	public void download(BufferedReader userInput,Socket socket){
 		try{
+			Socket file_socket = new Socket(ip,23456);
 			PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
 			String file_name = userInput.readLine();
 			pw.println(file_name);
@@ -69,6 +73,7 @@ public class client{
 				}
 				else if(file_flag==2){
 					file_flag=0;
+					file_socket.close();
 					return;
 				}
 			}
@@ -86,8 +91,8 @@ public class client{
               	num = in.read(buf);   		
          	} 
            	in.close();
-           	netIn.close();
            	raf.close();
+           	file_socket.close();
 		}catch (IOException e){/*error do nothing*/}
 	}
 
@@ -97,9 +102,8 @@ public class client{
 
 	public void go() throws IOException{
 		//initial
-		String ip = "127.0.0.1",user_input,socket_input;
+		String user_input,socket_input;
 		Socket socket = new Socket(ip, 12345);
-		Socket file_socket = new Socket(ip,23456);
 		BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		OutputStream os = socket.getOutputStream();
 		PrintWriter pw = new PrintWriter(os, true);
@@ -126,9 +130,9 @@ public class client{
 			if(user_input.equals("LOGOUT"))
 				state = false;
 			else if(user_input.equals("FILE"))
-				file(userInput,socket,file_socket);
+				file(userInput,socket);
 			else if(user_input.equals("DOWNLOAD"))
-				download(userInput,socket,file_socket);
+				download(userInput,socket);
 		}
 	}
 }
