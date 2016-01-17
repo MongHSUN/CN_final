@@ -110,21 +110,44 @@ public class server{
 			}catch (IOException e){/*error do nothing*/}
 		}
 		public void message(int my_count){
-			int i,flag=0;
+			int i=0,flag=0,count=0,tmp=0;
 			try{
 				pw.println("SYSTEM : Please enter the user you want to message (chat for chat room)");
 				String name = br.readLine();
-				for (i=0;i<user_count;i++){
-					if(name.equals(member[i].id)&&member[i].live==true){
-						flag = 1;
-						break;
-					}
-					else if(name.equals(member[i].id)&&member[i].live==false){
-						flag = 2;
-						break;
+				if(name.equals("chat")){
+					if(member[my_count].chat_room_id==-1)
+						pw.println("SYSTEM : Error ! You are not in a chat room");
+					else
+						flag=1;
+				}
+				else{
+					for (i=0;i<user_count;i++){
+						if(name.equals(member[i].id)&&member[i].live==true){
+							flag = 2;
+							break;
+						}
+						else if(name.equals(member[i].id)&&member[i].live==false){
+							flag = 3;
+							break;
+						}
 					}
 				}
 				if(flag==1){
+					pw.println("SYSTEM : Please enter the message you want to send");
+					String input = br.readLine();
+					int room_id = member[my_count].chat_room_id;
+					while(count!=room[room_id].num){
+						if(room[room_id].user[tmp]!=-1){
+							OutputStream os_tmp = member[room[room_id].user[tmp]].socket.getOutputStream();
+							PrintWriter pw_tmp = new PrintWriter(os_tmp, true);
+							pw_tmp.println(member[my_count].id+" : "+input);
+							count++;
+						}
+						tmp++;
+					}
+					System.out.println(member[my_count].id+" to "+room_id+" chat room : "+input);
+				}
+				else if(flag==2){
 					pw.println("SYSTEM : Please enter the message you want to send");
 					String input = br.readLine();
 					OutputStream os_tmp = member[i].socket.getOutputStream();
@@ -133,7 +156,7 @@ public class server{
 					pw.println(member[my_count].id+" : "+input);
 					System.out.println(member[my_count].id+" to "+member[i].id+" : "+input);
 				}
-				else if(flag==2)
+				else if(flag==3)
 					pw.println("SYSTEM : The user is offline !");
 				else
 					pw.println("SYSTEM : No such user !");
@@ -215,7 +238,16 @@ public class server{
 			try{
 				pw.println("SYSTEM : You log out the system !");
 				member[my_count].live = false;
-				member[my_count].chat_room_id = -1;
+				if(member[my_count].chat_room_id!=-1){
+					int i,room_id = member[my_count].chat_room_id;
+					for(i=0;i<room[room_id].num;i++)
+						if(room[room_id].user[i]==my_count){
+							room[room_id].user[i] = -1;
+							break;
+						}
+					room[room_id].num--;
+					member[my_count].chat_room_id = -1;
+				}
 				client.close();
 				System.out.println(member[my_count].id+" leave !");
 			}catch (IOException e){/*error do nothing*/}
