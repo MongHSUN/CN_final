@@ -38,10 +38,10 @@ public class client{
     		pw.println(account);
     		file_name = userInput.readLine();	
     		file = new File(file_name);
-    		if(!file.isFile()){
+    		while(!file.isFile()){
     			System.out.println("STSTEM : Invalid file name ! Please enter again");
     			file_name = userInput.readLine();
-    			if(file_socket.equals("quit")){
+    			if(file_name.equals("quit")){
     				file_socket.close();
     				pw.println("quit");
     				return;
