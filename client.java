@@ -5,7 +5,7 @@ public class client{
 
 	public static boolean state=true;
 	public static int file_flag=0;
-	public static String ip = "127.0.0.1";
+	public static String ip;
 
 	public class MyRunnable implements Runnable{
 		private Socket socket;
@@ -97,6 +97,7 @@ public class client{
 	}
 
 	public static void main(String args[]) throws IOException{
+		ip = args[0];
 		new client().go();
 	}
 

@@ -17,6 +17,7 @@ public class server{
 	public static Room[] room = new Room[100];
 	public static int user_count=0; 
 	public static ServerSocket file_ser;
+	public static String ip;
 	//thread
 	public class MyRunnable implements Runnable{
 		private Socket client;
@@ -115,8 +116,10 @@ public class server{
 				pw.println("SYSTEM : Please enter the user you want to message (chat for chat room)");
 				String name = br.readLine();
 				if(name.equals("chat")){
-					if(member[my_count].chat_room_id==-1)
+					if(member[my_count].chat_room_id==-1){
 						pw.println("SYSTEM : Error ! You are not in a chat room");
+						return;
+					}
 					else
 						flag=1;
 				}
@@ -166,14 +169,24 @@ public class server{
 			try {
 				Socket file_client = file_ser.accept();
 				System.out.println(file_client);
-				int flag=0,i=0;
+				int flag=0,i=0,count=0,tmp=0;
 				pw.println("SYSTEM : Please enter the account you want to transfer file (chat for chat room)");
 				String name = br.readLine();
-				for (i=0;i<user_count;i++)
-					if(name.equals(member[i].id)&&member[i].live==true){
-						flag = 1;
-						break;
+				if(name.equals("chat")){
+					if(member[my_count].chat_room_id==-1){
+						pw.println("SYSTEM : Error ! You are not in a chat room");
+						return;
 					}
+					else
+						flag=2;
+				}			
+				else{
+					for (i=0;i<user_count;i++)
+						if(name.equals(member[i].id)&&member[i].live==true){
+							flag = 1;
+							break;
+						}
+				}
 				pw.println("SYSTEM : Please enter the file you want to transfer");
 				String file_name = br.readLine();
             	File file = new File(file_name); 
@@ -198,6 +211,21 @@ public class server{
 					PrintWriter pw_tmp = new PrintWriter(os_tmp, true);
 					pw_tmp.println("SYSTEM : "+member[my_count].id+" sends "+file_name+" to you");
            			System.out.println(member[my_count].id+" sends "+file_name+" to "+member[i].id);
+      			}
+      			else if(flag==2){
+      				int room_id = member[my_count].chat_room_id;
+					while(count!=room[room_id].num){
+						if(room[room_id].user[tmp]!=-1){
+							if(room[room_id].user[tmp]!=my_count){
+								OutputStream os_tmp = member[room[room_id].user[tmp]].socket.getOutputStream();
+								PrintWriter pw_tmp = new PrintWriter(os_tmp, true);
+								pw_tmp.println(member[my_count].id+" sends "+file_name+" to "+room_id+" chat room");
+							}
+							count++;
+						}
+						tmp++;
+					}
+					System.out.println(member[my_count].id+" sends "+file_name+" to "+room_id+" chat room");
       			}
       			else
       				System.out.println(member[my_count].id+" sends "+file_name+" to server");
@@ -341,12 +369,13 @@ public class server{
     }
     //main function
     public static void main(String args[]) throws IOException{
+		ip = args[0];
 		new server().go();
 	}
 	public void go() throws IOException{
 		//initial
 		int i;
-		InetAddress addr = InetAddress.getByName("127.0.0.1");
+		InetAddress addr = InetAddress.getByName(ip);
 		ServerSocket ser = new ServerSocket(12345, 100, addr);
 		file_ser = new ServerSocket(23456, 100, addr);
 		for(i=0;i<100;i++){
