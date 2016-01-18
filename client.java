@@ -40,7 +40,12 @@ public class client{
     		file = new File(file_name);
     		if(!file.isFile()){
     			System.out.println("STSTEM : Invalid file name ! Please enter again");
-    			file_name = userInput.readLine();	
+    			file_name = userInput.readLine();
+    			if(file_socket.equals("quit")){
+    				file_socket.close();
+    				pw.println("quit");
+    				return;
+    			}	
     			file = new File(file_name);	
     		}
     		pw.println(file_name);

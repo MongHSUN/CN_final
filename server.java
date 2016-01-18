@@ -179,7 +179,11 @@ public class server{
 					}
 					else
 						flag=2;
-				}			
+				}	
+				else if(name.equals("quit")){
+					pw.println("SYSTEM : Give up transfering file");
+					return;		
+				}
 				else{
 					for (i=0;i<user_count;i++)
 						if(name.equals(member[i].id)&&member[i].live==true){
@@ -314,7 +318,7 @@ public class server{
 						room[room_id].num++;
 						member[my_count].chat_room_id = room_id;
 						pw.println("SYSTEM : Joining in "+room_id+" chat room succeed");
-						System.out.println(member[my_count].id+" joins in"+room_id+" chat room"); 
+						System.out.println(member[my_count].id+" joins in "+room_id+" chat room"); 
 					}
 				}
 			}catch (IOException e){/*error do nothing*/}
