@@ -143,7 +143,7 @@ public class server{
 						if(room[room_id].user[tmp]!=-1){
 							OutputStream os_tmp = member[room[room_id].user[tmp]].socket.getOutputStream();
 							PrintWriter pw_tmp = new PrintWriter(os_tmp, true);
-							pw_tmp.println(member[my_count].id+" : "+input);
+							pw_tmp.println(member[my_count].id+" to "+room_id+" chat room : "+input);
 							count++;
 						}
 						tmp++;
@@ -156,7 +156,7 @@ public class server{
 					OutputStream os_tmp = member[i].socket.getOutputStream();
 					PrintWriter pw_tmp = new PrintWriter(os_tmp, true);
 					pw_tmp.println(member[my_count].id+" : "+input);
-					pw.println(member[my_count].id+" : "+input);
+					pw.println(member[my_count].id+" to "+member[i].id+" : "+input);
 					System.out.println(member[my_count].id+" to "+member[i].id+" : "+input);
 				}
 				else if(flag==3)
@@ -180,10 +180,6 @@ public class server{
 					else
 						flag=2;
 				}	
-				else if(name.equals("quit")){
-					pw.println("SYSTEM : Give up transfering file");
-					return;		
-				}
 				else{
 					for (i=0;i<user_count;i++)
 						if(name.equals(member[i].id)&&member[i].live==true){
@@ -193,6 +189,10 @@ public class server{
 				}
 				pw.println("SYSTEM : Please enter the file you want to transfer");
 				String file_name = br.readLine();
+				if(file_name.equals("quit")){
+					pw.println("SYSTEM : Give up transfering file");
+					return;		
+				}
             	File file = new File(file_name); 
            		if (file.exists()) file.delete(); 
            		file.createNewFile();	
@@ -213,18 +213,17 @@ public class server{
            		if (flag==1){
            			OutputStream os_tmp = member[i].socket.getOutputStream();
 					PrintWriter pw_tmp = new PrintWriter(os_tmp, true);
-					pw_tmp.println("SYSTEM : "+member[my_count].id+" sends "+file_name+" to you");
+					pw_tmp.println(member[my_count].id+" sends : "+file_name);
+					pw.println(member[my_count].id+" sends "+file_name+" to "+member[i].id);
            			System.out.println(member[my_count].id+" sends "+file_name+" to "+member[i].id);
       			}
       			else if(flag==2){
       				int room_id = member[my_count].chat_room_id;
 					while(count!=room[room_id].num){
 						if(room[room_id].user[tmp]!=-1){
-							if(room[room_id].user[tmp]!=my_count){
-								OutputStream os_tmp = member[room[room_id].user[tmp]].socket.getOutputStream();
-								PrintWriter pw_tmp = new PrintWriter(os_tmp, true);
-								pw_tmp.println(member[my_count].id+" sends "+file_name+" to "+room_id+" chat room");
-							}
+							OutputStream os_tmp = member[room[room_id].user[tmp]].socket.getOutputStream();
+							PrintWriter pw_tmp = new PrintWriter(os_tmp, true);
+							pw_tmp.println(member[my_count].id+" sends "+file_name+" to "+room_id+" chat room");
 							count++;
 						}
 						tmp++;
