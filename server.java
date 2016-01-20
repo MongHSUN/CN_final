@@ -32,7 +32,7 @@ public class server{
 			boolean succeed=true;
 			int tmp=0,i,flag,my_count=user_count;
 			String mypassword;
-			pw.println("SYSTEM : Please enter your account ( new for registration )");
+			pw.println("#Please enter your account ( new for registration )");
 			while(succeed){
 				try{
 					String str = br.readLine();
@@ -41,11 +41,11 @@ public class server{
 						while(true){
 							flag = 0;
 							if(tmp==0)
-								pw.println("SYSTEM : Please enter your new account");
+								pw.println("#Please enter your new account");
 							String account = br.readLine();
 							for(i=0;i<user_count;i++){
 								if(account.equals(member[i].id)){
-									pw.println("SYSTEM : This account has been used ! Enter another again");
+									pw.println("#This account has been used ! Enter another again");
 									tmp=1;
 									flag=1;
 									break;
@@ -53,7 +53,7 @@ public class server{
 							}
 							if(flag==1)
 								continue;
-							pw.println("SYSTEM : Please enter your password");
+							pw.println("#Please enter your password");
 							mypassword = br.readLine();
 							succeed = false;
 							my_count = user_count;
@@ -68,7 +68,7 @@ public class server{
 					}
 					//standord login
 					else{
-						pw.println("SYSTEM : Please enter your password");
+						pw.println("#Please enter your password");
 						mypassword = br.readLine();
 						for(i=0;i<user_count;i++)
 							if(str.equals(member[i].id)&&mypassword.equals(member[i].password)){
@@ -79,7 +79,7 @@ public class server{
 								break;
 							}
 						if(succeed)
-							pw.println("SYSTEM : Incorrect account or password ! Enter your account again");
+							pw.println("#Incorrect account or password ! Enter your account again");
 					}
 				}catch (IOException e){/*error do nothing*/}
 			}
@@ -101,11 +101,11 @@ public class server{
 					}
 				}
 				if(status==0)
-					pw.println("SYSTEM : This account hasn't been registered !");
+					pw.println("#This account hasn't been registered !");
 				else if(status==1)
-					pw.println("SYSTEM : The user is offline !");
+					pw.println("#The user is offline !");
 				else	
-					pw.println("SYSTEM : The user is online !");
+					pw.println("#The user is online !");
 				System.out.println(member[my_count].id+" knocks "+str);
 			}catch (IOException e){/*error do nothing*/}
 		}
@@ -116,7 +116,7 @@ public class server{
 				String input = br.readLine();
 				if(name.equals("chat")){
 					if(member[my_count].chat_room_id==-1){
-						pw.println("SYSTEM : Error ! You are not in a chat room");
+						pw.println("#Error ! You are not in a chat room");
 						return;
 					}
 					else
@@ -140,7 +140,7 @@ public class server{
 						if(room[room_id].user[tmp]!=-1){
 							OutputStream os_tmp = member[room[room_id].user[tmp]].socket.getOutputStream();
 							PrintWriter pw_tmp = new PrintWriter(os_tmp, true);
-							pw_tmp.println(member[my_count].id+" to "+room_id+" chat room : "+input);
+							pw_tmp.println("%"+member[my_count].id+" to "+room_id+" chat room : "+input);
 							count++;
 						}
 						tmp++;
@@ -150,14 +150,14 @@ public class server{
 				else if(flag==2){
 					OutputStream os_tmp = member[i].socket.getOutputStream();
 					PrintWriter pw_tmp = new PrintWriter(os_tmp, true);
-					pw_tmp.println(member[my_count].id+" : "+input);
-					pw.println(member[my_count].id+" to "+member[i].id+" : "+input);
+					pw_tmp.println("$"+member[my_count].id+" : "+input);
+					pw.println("$"+member[my_count].id+" to "+member[i].id+" : "+input);
 					System.out.println(member[my_count].id+" to "+member[i].id+" : "+input);
 				}
 				else if(flag==3)
-					pw.println("SYSTEM : The user is offline !");
+					pw.println("#The user is offline !");
 				else
-					pw.println("SYSTEM : No such user !");
+					pw.println("#SYSTEM : No such user !");
 			}catch (IOException e){/*error do nothing*/}
 		}
 		public void file(int my_count){
@@ -165,11 +165,10 @@ public class server{
 				Socket file_client = file_ser.accept();
 				System.out.println(file_client);
 				int flag=0,i=0,count=0,tmp=0;
-				pw.println("SYSTEM : Please enter the account you want to transfer file (chat for chat room)");
 				String name = br.readLine();
 				if(name.equals("chat")){
 					if(member[my_count].chat_room_id==-1){
-						pw.println("SYSTEM : Error ! You are not in a chat room");
+						pw.println("#Error ! You are not in a chat room");
 						return;
 					}
 					else
@@ -182,12 +181,7 @@ public class server{
 							break;
 						}
 				}
-				pw.println("SYSTEM : Please enter the file you want to transfer");
 				String file_name = br.readLine();
-				if(file_name.equals("quit")){
-					pw.println("SYSTEM : Give up transfering file");
-					return;		
-				}
             	File file = new File(file_name); 
            		if (file.exists()) file.delete(); 
            		file.createNewFile();	
@@ -204,12 +198,12 @@ public class server{
            		in.close();
            		raf.close();
            		file_client.close();
-           		pw.println("SYSTEM : File transfer succeed");
+           		pw.println("#File transfer succeed");
            		if (flag==1){
            			OutputStream os_tmp = member[i].socket.getOutputStream();
 					PrintWriter pw_tmp = new PrintWriter(os_tmp, true);
-					pw_tmp.println(member[my_count].id+" sends : "+file_name);
-					pw.println(member[my_count].id+" sends "+file_name+" to "+member[i].id);
+					pw_tmp.println("$"+member[my_count].id+" sends : "+file_name);
+					pw.println("$"+member[my_count].id+" sends "+file_name+" to "+member[i].id);
            			System.out.println(member[my_count].id+" sends "+file_name+" to "+member[i].id);
       			}
       			else if(flag==2){
@@ -218,7 +212,7 @@ public class server{
 						if(room[room_id].user[tmp]!=-1){
 							OutputStream os_tmp = member[room[room_id].user[tmp]].socket.getOutputStream();
 							PrintWriter pw_tmp = new PrintWriter(os_tmp, true);
-							pw_tmp.println(member[my_count].id+" sends "+file_name+" to "+room_id+" chat room");
+							pw_tmp.println("%"+member[my_count].id+" sends "+file_name+" to "+room_id+" chat room");
 							count++;
 						}
 						tmp++;
@@ -234,15 +228,14 @@ public class server{
 				Socket file_client = file_ser.accept();
 				System.out.println(file_client);
 				File file;
-				pw.println("SYSTEM : Please enter the file name you want to download");
 				String file_name = br.readLine();
 				file = new File(file_name);
     			if(!file.isFile()){
-    				pw.println("STSTEM : Invalid file name ! Download stops");
+    				pw.println("#Invalid file name ! Download stops");
     				file_client.close();
     				return;
     			}
-    			pw.println("SYSTEM : File download starts");
+    			pw.println("#File download starts");
     			FileInputStream fos = new FileInputStream(file);
       			OutputStream netOut = file_client.getOutputStream();
       			OutputStream doc = new BufferedOutputStream(netOut);
@@ -256,13 +249,12 @@ public class server{
       			doc.close();
       			fos.close();
       			file_client.close();
-      			pw.println("SYSTEM : File download succeed");
+      			pw.println("#File download succeed");
       			System.out.println(member[my_count].id+" downloads "+file_name);	
       		} catch(Exception ex) {}/*error do nothing*/
 		}
 		public boolean logout(int my_count){
 			try{
-				pw.println("SYSTEM : You log out the system !");
 				member[my_count].live = false;
 				if(member[my_count].chat_room_id!=-1){
 					int i,room_id = member[my_count].chat_room_id;
@@ -284,9 +276,9 @@ public class server{
 				String str = br.readLine();
 				int room_id = Integer.valueOf(str);
 				if(room_id<0||room_id>=100)
-					pw.println("SYSTEM : Invalid chat room id");
+					pw.println("#Invalid chat room id");
 				else
-					pw.println("SYSTEM : "+room[room_id].num+" users in "+room_id+" chat room");
+					pw.println("#"+room[room_id].num+" users in "+room_id+" chat room");
 				System.out.println(member[my_count].id+" knocks "+room_id+" chat room");
 			}catch (IOException e){/*error do nothing*/}
 		}
@@ -294,12 +286,11 @@ public class server{
 			int i,tmp_num=0;
 			try{
 				if(member[my_count].chat_room_id!=-1)
-					pw.println("SYSTEM : Error ! You have been in a chat room");
+					pw.println("#Error ! You have been in a chat room");
 				else{
-					pw.println("SYSTEM : Please enter the chat room you want in");
 					int room_id = Integer.valueOf(br.readLine());
 					if(room_id<0||room_id>=100)
-						pw.println("SYSTEM : Invalid chat room id ! Join Failure");
+						pw.println("#Invalid chat room id ! Join Failure");
 					else{	
 						while(tmp_num!=room[room_id].num){
 							if(room[room_id].user[tmp_num]==-1)
@@ -310,31 +301,35 @@ public class server{
 						room[room_id].user[tmp_num] = my_count;
 						room[room_id].num++;
 						member[my_count].chat_room_id = room_id;
-						pw.println("SYSTEM : Joining in "+room_id+" chat room succeed");
+						pw.println("%Welcome to "+room_id+" chat room succeed");
 						System.out.println(member[my_count].id+" joins in "+room_id+" chat room"); 
 					}
 				}
 			}catch (IOException e){/*error do nothing*/}
 		}
 		public void leave(int my_count,int room_id){
-			int i;
-			for(i=0;i<room[room_id].num;i++)
-				if(room[room_id].user[i]==my_count){
-					room[room_id].user[i] = -1;
+			int i,tmp_num=0,count=0;
+			while(tmp_num!=room[room_id].num){
+				if(room[room_id].user[count]==my_count){
+					room[room_id].user[count] = -1;
 					break;
 				}
+				else if(room[room_id].user[count]!=-1)
+					tmp_num++;
+				count++;
+			}
 			room[room_id].num--;
 			member[my_count].chat_room_id = -1;
-			pw.println("SYSTEM : Leave "+room_id+" chat room");
+			pw.println("%Leave "+room_id+" chat room");
 			System.out.println(member[my_count].id+" leaves"+room_id+" chat room");
 		}
 		public void run(){
 			boolean state=true;
-			pw.println("SYSTEM : Your are connected!");
+			pw.println("#Your are connected!");
 			System.out.println(client);
 			System.out.println("user_count : "+user_count);
 			int my_count = registration();
-			pw.println("SYSTEM : Login succeed !");
+			pw.println("#Login succeed !");
 			//server do read-and-write
         	while(state){
         		try{
