@@ -11,7 +11,8 @@ public class client extends JFrame implements ActionListener{
 	public static int file_flag=0, command = 0;
 	public static String ip;
 	private String account, password, user_input;
-	private static int flag = 0, isLogout = 1, isPrivate = 2, isSendFile = 3;
+	private static int flag = 0, isLogout = 1, isPrivate = 2, isSendFile = 3, isJoin = 4;
+	private static int isLeave = 5, isChat = 6, isChatFile = 7, isDownload = 8, isUknock = 9, isCknock = 10;
 
 	JFrame demo = new JFrame();
 	//header
@@ -42,6 +43,7 @@ public class client extends JFrame implements ActionListener{
 	JLabel chat_lab = new JLabel("Chat Room: ");
 	JButton chat_join = new JButton("Join Chat Room");
 	JTextField chat_num = new JTextField();
+	JButton chat_leave = new JButton("Leave");
 	JTextArea chat_area = new JTextArea();
 	JLabel chat_new = new JLabel("New Message:");
 	JTextArea chat_message = new JTextArea();
@@ -74,10 +76,21 @@ public class client extends JFrame implements ActionListener{
 				try{
 					String system_response = br.readLine();
 					System.out.println(system_response);
-					system_area.setText(system_response);
-					if(system_response.equals("SYSTEM : File download starts"))
+					if(system_response.startsWith("#")){
+						system_response = system_response.replace("#", "");
+						system_area.setText(system_response);
+					}						
+					else if(system_response.startsWith("$")){
+						system_response = system_response.replace("$", "");
+						private_area.append(system_response+"\n");
+					}
+					else if(system_response.startsWith("%")){
+						system_response = system_response.replace("%", "");
+						chat_area.append(system_response+"\n");
+					}
+					if(system_response.equals("File download starts"))
 						file_flag = 1;
-					else if(system_response.equals("STSTEM : Invalid file name ! Download stops"))
+					else if(system_response.equals("Invalid file name ! Download stops"))
 						file_flag = 2;
 				}catch (IOException e){/*error do nothing*/}
 			}
@@ -90,21 +103,17 @@ public class client extends JFrame implements ActionListener{
     		String file_name;
     		File file;
     		PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
-    		String user = private_user.getText();
+    		String user;
+    		if(command == isChatFile){
+    			user = "chat";
+    			file_name = chat_filename.getText();	
+    		}    			
+    		else{
+    			user = private_user.getText();
+    			file_name = private_filename.getText();	
+    		}    			
     		pw.println(user);
-    		//System.out.println(user);
-    		file_name = private_filename.getText();	
     		file = new File(file_name);
-    		while(!file.isFile()){
-    			System.out.println("STSTEM : Invalid file name ! Please enter again");
-    			file_name = userInput.readLine();
-    			if(file_name.equals("quit")){
-    				file_socket.close();
-    				pw.println("quit");
-    				return;
-    			}	
-    			file = new File(file_name);	
-    		}
     		System.out.println(file.getName());
     		pw.println(file.getName());
       		FileInputStream fos = new FileInputStream(file);
@@ -127,7 +136,7 @@ public class client extends JFrame implements ActionListener{
 		try{
 			Socket file_socket = new Socket(ip,23456);
 			PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
-			String file_name = userInput.readLine();
+			String file_name = download_file.getText();
 			pw.println(file_name);
 			while(true){
 				if(file_flag==1){
@@ -175,15 +184,10 @@ public class client extends JFrame implements ActionListener{
 			account = "new";
 			flag = 1;
 		}
-		else if(event.getSource() == logout_button){
+		else if(event.getSource() == logout_button)
 			command = isLogout;
-			account_text.setText("");
-			password_text.setText("");
-			//System.out.println(command);
-		}			
-		else if(event.getSource() == private_button){
+		else if(event.getSource() == private_button)
 			command = isPrivate;
-		}
 		else if(event.getSource() == private_file){
 			JFileChooser fileChooser = new JFileChooser();
 			int returnValue = fileChooser.showOpenDialog(null);
@@ -192,9 +196,30 @@ public class client extends JFrame implements ActionListener{
 				private_filename.setText(selectedFile.getAbsolutePath());
 			}
 		}
-		else if(event.getSource() == private_file_send){
+		else if(event.getSource() == private_file_send)
 			command = isSendFile;
+		else if(event.getSource() == chat_join)
+			command = isJoin;
+		else if(event.getSource() == chat_leave)
+			command = isLeave;
+		else if(event.getSource() == chat_button)
+			command = isChat;
+		else if(event.getSource() == chat_file){
+			JFileChooser fileChooser = new JFileChooser();
+			int returnValue = fileChooser.showOpenDialog(null);
+			if(returnValue == JFileChooser.APPROVE_OPTION){
+				File selectedFile = fileChooser.getSelectedFile();
+				chat_filename.setText(selectedFile.getAbsolutePath());
+			}
 		}
+		else if(event.getSource() == chat_file_send)
+			command = isChatFile;
+		else if(event.getSource() == download_button)
+			command = isDownload;
+		else if(event.getSource() == knock)
+			command = isUknock;
+		else if(event.getSource() == knock_chat)
+			command = isCknock;
 	}
 
 	public void makeGUI(){
@@ -281,14 +306,20 @@ public class client extends JFrame implements ActionListener{
 		chat_lab.setBounds(700, 50, 100, 30);
 		cont.add(chat_lab);
 
-		chat_join.setBounds(920, 50, 140, 30);
+		chat_join.setBounds(850, 50, 140, 30);
 		cont.add(chat_join);
+		chat_join.addActionListener(this);
 
-		chat_num.setBounds(1070, 50, 30, 30);
+		chat_num.setBounds(995, 50, 30, 30);
 		cont.add(chat_num);
+
+		chat_leave.setBounds(1030, 50, 70, 30);
+		cont.add(chat_leave);
+		chat_leave.addActionListener(this);
 		//chat area
 		chat_area.setLineWrap(true);
 		chat_area.setWrapStyleWord(true);
+		chat_area.setBackground(new Color(204, 255, 229));
 		JScrollPane chat_area_scroll = new JScrollPane(chat_area);
 		chat_area_scroll.setBounds(700, 80, 400, 300);
 		cont.add(chat_area_scroll);
@@ -304,9 +335,11 @@ public class client extends JFrame implements ActionListener{
 
 		chat_button.setBounds(1030, 385, 70, 30);
 		cont.add(chat_button);
+		chat_button.addActionListener(this);
 		//new chat file
 		chat_file.setBounds(700, 485, 100, 30);
 		cont.add(chat_file);
+		chat_file.addActionListener(this);
 
 		chat_filename.setBounds(810, 485, 210, 30);
 		chat_filename.setOpaque(true);
@@ -315,6 +348,7 @@ public class client extends JFrame implements ActionListener{
 
 		chat_file_send.setBounds(1030, 485, 70, 30);
 		cont.add(chat_file_send);
+		chat_file_send.addActionListener(this);
 		//download
 		download_lab.setBounds(20, 540, 90, 30);
 		cont.add(download_lab);
@@ -322,17 +356,37 @@ public class client extends JFrame implements ActionListener{
 		cont.add(download_file);
 		download_button.setBounds(220, 540, 90, 30);
 		cont.add(download_button);
+		download_button.addActionListener(this);
 		//knock
 		knock.setBounds(400, 540, 120, 30);
 		cont.add(knock);
+		knock.addActionListener(this);
 		knock_user.setBounds(530, 540, 150, 30);
 		cont.add(knock_user);
 		knock_chat.setBounds(750, 540, 150, 30);
 		cont.add(knock_chat);
+		knock_chat.addActionListener(this);
 		knock_chat_num.setBounds(910, 540, 30, 30);
 		cont.add(knock_chat_num);
 		//demo visible
 		demo.setVisible(true);
+	}
+
+	public void logout_cleaner(){
+		account_text.setText("");
+		password_text.setText("");
+		system_area.setText("");
+		private_area.setText("");
+		private_user.setText("");
+		private_message.setText("");
+		private_filename.setText("");
+		chat_area.setText("");
+		chat_num.setText("");
+		chat_message.setText("");
+		chat_filename.setText("");
+		download_file.setText("");
+		knock_user.setText("");
+		knock_chat_num.setText("");
 	}
 
 	public static void main(String args[]) throws IOException{
@@ -352,11 +406,13 @@ public class client extends JFrame implements ActionListener{
 		//login flow
 		socket_input = br.readLine();
 		System.out.println(socket_input);
+		socket_input = socket_input.replace("#", "");
 		system_area.setText(socket_input);
 		socket_input = br.readLine();
 		int new_rig = 0;
-		while(!socket_input.equals("SYSTEM : Login succeed !")){
+		while(!socket_input.equals("Login succeed !")){
 			System.out.println(socket_input);
+			socket_input = socket_input.replace("#", "");
 			system_area.setText(socket_input);
 			while(flag == 0){}
 			if(account.equals("new")){
@@ -366,63 +422,143 @@ public class client extends JFrame implements ActionListener{
 				new_rig = 1;
 			}
 			else if(new_rig == 1){
-				pw.println(account);
-				socket_input = br.readLine();
-				if(socket_input.equals("SYSTEM : This account has been used ! Enter another again"))
-					system_area.setText(socket_input);
+				if(account.equals(""))
+					system_area.setText("Please enter your account.");
 				else{
-					pw.println(password);
+					pw.println(account);
 					socket_input = br.readLine();
-					system_area.setText(socket_input);
-				}					
+					if(socket_input.equals("#This account has been used ! Enter another again")){
+						socket_input = socket_input.replace("#", "");
+						system_area.setText(socket_input);
+					}					
+					else{
+						pw.println(password);
+						socket_input = br.readLine();
+						socket_input = socket_input.replace("#", "");
+						system_area.setText(socket_input);
+					}					
+				}				
 			}
 			else{
-				pw.println(account);
-				socket_input = br.readLine();
-				pw.println(password);
-				socket_input = br.readLine();
-				system_area.setText(socket_input);
+				if(account.equals(""))
+					system_area.setText("Please anter you account.");
+				else if(password.equals(""))
+					system_area.setText("Please enter your password.");
+				else{
+					pw.println(account);
+					//socket_input = br.readLine();
+					pw.println(password);
+					socket_input = br.readLine();
+					socket_input = socket_input.replace("#", "");
+					system_area.setText(socket_input);
+				}				
 			}			
-			//socket_input = br.readLine();
 			flag = 0;
 		}
-		//System.out.println("login finish");
-		System.out.println(socket_input);
-		
+		System.out.println("login!");		
 		//command flow
 		System.out.println("Now you can enter the following commands : KNOCK MESSAGE FILE DOWNLOAD CKNOCK CHAT LEAVE LOGOUT");
 		//a thread to listen socket input
 		Thread t = new Thread(new MyRunnable(socket,br));
 		t.start();
 		//main thread to listen user input
+		int count = 0;
 		while(state){
 			while(command == 0){
+				count++;
 				System.out.println(command);
 			}			
+
 			if(command == isLogout){
 				//System.out.println("logout");
+				logout_cleaner();
 				pw.println("LOGOUT");
 				state = false;
 			}			
 			else if(command == isPrivate){
-				pw.println("MESSAGE");
-				pw.println(private_user.getText());
-				pw.println(private_message.getText());
-				private_area.append(account+": "+private_message.getText());
-				private_message.setText("");
-				command = 0;
+				if(!private_user.getText().equals("") && !private_message.getText().equals("")){
+					pw.println("MESSAGE");
+					pw.println(private_user.getText());
+					pw.println(private_message.getText());
+					private_user.setText("");
+					private_message.setText("");
+				}
+				else if(private_user.getText().equals(""))
+					system_area.setText("Please enter a user name.");
+				else
+					system_area.setText("Please enter your message.");
 			}
 			else if(command == isSendFile){
-				pw.println("FILE");
-				file(userInput,socket);
-				command = 0;
+				if(!private_filename.getText().equals("") && !private_user.getText().equals("")){
+					pw.println("FILE");
+					file(userInput,socket);
+					private_filename.setText("");
+				}
+				else if(private_filename.getText().equals(""))
+					system_area.setText("Please choose a file.");
+				else
+					system_area.setText("Please enter a user name.");
 			}
-				
-			//user_input = userInput.readLine();			
-			
-			/*
-			else if(user_input.equals("DOWNLOAD"))
-				download(userInput,socket);*/
+			else if(command == isJoin){
+				if(!chat_num.getText().equals("")){
+					pw.println("CHAT");
+					pw.println(chat_num.getText());
+				}
+				else
+					system_area.setText("Please enter a chat room number.");
+			}	
+			else if(command == isLeave){
+				pw.println("LEAVE");
+				chat_num.setText("");
+			}
+			else if(command == isChat){
+				if(!chat_message.getText().equals("") && !chat_num.getText().equals("")){
+					pw.println("MESSAGE");
+					pw.println("chat");
+					pw.println(chat_message.getText());
+					chat_message.setText("");
+				}
+				else if(chat_num.getText().equals(""))
+					system_area.setText("You are not in a chat room.");
+				else
+					system_area.setText("Please enter your message.");
+			}
+			else if(command == isChatFile){
+				if(!chat_filename.getText().equals("")){
+					pw.println("FILE");
+					file(userInput,socket);		
+					chat_filename.setText("");		
+				}
+				else
+					system_area.setText("Please choose a file.");
+			}
+			else if(command == isDownload){
+				if(!download_file.getText().equals("")){
+					pw.println("DOWNLOAD");
+					download(userInput,socket);
+				}
+				else
+					system_area.setText("Please enter a file name.");
+			}
+			else if(command == isUknock){
+				if(knock_user.getText().equals(""))
+					system_area.setText("Please enter a user name.");
+				else{
+					pw.println("KNOCK");
+					pw.println(knock_user.getText());
+					knock_user.setText("");
+				}
+			}
+			else if(command == isCknock){
+				if(knock_chat_num.getText().equals(""))
+					system_area.setText("Please enter a chat room number.");
+				else{
+					pw.println("CKNOCK");
+					pw.println(knock_chat_num.getText());
+					knock_chat_num.setText("");
+				}
+			}
+			command = 0;
 		}
 	}
 }
