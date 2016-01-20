@@ -89,7 +89,6 @@ public class server{
 		public void knock(int my_count){
 			int status=0,i;
 			try{
-				pw.println("SYSTEM : Please enter the account you want to knock");
 				String str = br.readLine();
 				for(i=0;i<user_count;i++){
 					if (str.equals(member[i].id)&&member[i].live==false) {
@@ -113,8 +112,8 @@ public class server{
 		public void message(int my_count){
 			int i=0,flag=0,count=0,tmp=0;
 			try{
-				pw.println("SYSTEM : Please enter the user you want to message (chat for chat room)");
 				String name = br.readLine();
+				String input = br.readLine();
 				if(name.equals("chat")){
 					if(member[my_count].chat_room_id==-1){
 						pw.println("SYSTEM : Error ! You are not in a chat room");
@@ -136,8 +135,6 @@ public class server{
 					}
 				}
 				if(flag==1){
-					pw.println("SYSTEM : Please enter the message you want to send");
-					String input = br.readLine();
 					int room_id = member[my_count].chat_room_id;
 					while(count!=room[room_id].num){
 						if(room[room_id].user[tmp]!=-1){
@@ -151,8 +148,6 @@ public class server{
 					System.out.println(member[my_count].id+" to "+room_id+" chat room : "+input);
 				}
 				else if(flag==2){
-					pw.println("SYSTEM : Please enter the message you want to send");
-					String input = br.readLine();
 					OutputStream os_tmp = member[i].socket.getOutputStream();
 					PrintWriter pw_tmp = new PrintWriter(os_tmp, true);
 					pw_tmp.println(member[my_count].id+" : "+input);
@@ -286,7 +281,6 @@ public class server{
 		}
 		public void cknock(int my_count){
 			try{
-				pw.println("SYSTEM : Please enter the chat room id you want to knock");
 				String str = br.readLine();
 				int room_id = Integer.valueOf(str);
 				if(room_id<0||room_id>=100)
