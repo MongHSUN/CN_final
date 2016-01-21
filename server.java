@@ -309,8 +309,10 @@ public class server{
 		}
 		public void leave(int my_count,int room_id){
 			int i,tmp_num=0,count=0;
-			if(member[my_count].chat_room_id==-1)
+			if(member[my_count].chat_room_id==-1){
 				pw.println("#Error ! You are not in a chat room !")
+				return;
+			}
 			while(tmp_num!=room[room_id].num){
 				if(room[room_id].user[count]==my_count){
 					room[room_id].user[count] = -1;
