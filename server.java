@@ -157,7 +157,7 @@ public class server{
 				else if(flag==3)
 					pw.println("#The user is offline !");
 				else
-					pw.println("#SYSTEM : No such user !");
+					pw.println("#No such user !");
 			}catch (IOException e){/*error do nothing*/}
 		}
 		public void file(int my_count){

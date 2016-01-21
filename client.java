@@ -446,7 +446,7 @@ public class client extends JFrame implements ActionListener{
 					system_area.setText("Please enter your password.");
 				else{
 					pw.println(account);
-					//socket_input = br.readLine();
+					socket_input = br.readLine();
 					pw.println(password);
 					socket_input = br.readLine();
 					socket_input = socket_input.replace("#", "");
@@ -474,6 +474,7 @@ public class client extends JFrame implements ActionListener{
 				logout_cleaner();
 				pw.println("LOGOUT");
 				state = false;
+				System.exit(1);
 			}			
 			else if(command == isPrivate){
 				if(!private_user.getText().equals("") && !private_message.getText().equals("")){
