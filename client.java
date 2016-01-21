@@ -474,6 +474,7 @@ public class client extends JFrame implements ActionListener{
 				logout_cleaner();
 				pw.println("LOGOUT");
 				state = false;
+				socket.close();
 				System.exit(1);
 			}			
 			else if(command == isPrivate){
